@@ -1,0 +1,251 @@
+{
+  "books": {
+    "1": {
+      "book_id": "1",
+      "title": "Web Hacking 101",
+      "author": "Peter Yaworski",
+      "category": "Web Security & Bug Bounties",
+      "available": true,
+      "borrower": null,
+      "due_date": null,
+      "times_borrowed": 1
+    },
+    "2": {
+      "book_id": "2",
+      "title": "The Web Application Hacker's Handbook",
+      "author": "Dafydd Stuttard & Marcus Pinto",
+      "category": "Web Security & Bug Bounties",
+      "available": false,
+      "borrower": "Anisul Islam",
+      "due_date": "2026-01-04",
+      "times_borrowed": 2
+    },
+    "3": {
+      "book_id": "3",
+      "title": "WEB_HACKING",
+      "author": "Dafydd Stuttard & Marcus Pinto",
+      "category": "Web Security & Bug Bounties",
+      "available": true,
+      "borrower": null,
+      "due_date": null,
+      "times_borrowed": 1
+    },
+    "4": {
+      "book_id": "4",
+      "title": "XSS Sheet",
+      "author": "Rodolfo Assis",
+      "category": "Web Security & Bug Bounties",
+      "available": true,
+      "borrower": null,
+      "due_date": null,
+      "times_borrowed": 0
+    },
+    "5": {
+      "book_id": "5",
+      "title": "The Browser Hacker's Handbook",
+      "author": "Wade Alcorn et al",
+      "category": "Web Security & Bug Bounties",
+      "available": false,
+      "borrower": "Sagar Biswas",
+      "due_date": "2026-01-04",
+      "times_borrowed": 2
+    },
+    "6": {
+      "book_id": "6",
+      "title": "The Science of Human Hacking",
+      "author": "Chris Hadnagy",
+      "category": "Social Engineering",
+      "available": true,
+      "borrower": null,
+      "due_date": null,
+      "times_borrowed": 0
+    },
+    "7": {
+      "book_id": "7",
+      "title": "Social Engineering: The Art of Human Hacking",
+      "author": "Christopher Hadnagy",
+      "category": "Social Engineering",
+      "available": false,
+      "borrower": "Atif Aslam",
+      "due_date": "2026-01-20",
+      "times_borrowed": 1
+    },
+    "8": {
+      "book_id": "8",
+      "title": "Android Hacker's Handbook",
+      "author": "Joshua J. Drake et al",
+      "category": "Mobile Application Security",
+      "available": true,
+      "borrower": null,
+      "due_date": null,
+      "times_borrowed": 0
+    },
+    "9": {
+      "book_id": "9",
+      "title": "The Mobile Application Hacker's Handbook",
+      "author": "Dominic Chell et al",
+      "category": "Mobile Application Security",
+      "available": false,
+      "borrower": "Sagar Biswas",
+      "due_date": "2026-01-04",
+      "times_borrowed": 1
+    },
+    "10": {
+      "book_id": "10",
+      "title": "Hacking Android",
+      "author": "Srinivasa Rao Koti",
+      "category": "Mobile Application Security",
+      "available": true,
+      "borrower": null,
+      "due_date": null,
+      "times_borrowed": 0
+    },
+    "11": {
+      "book_id": "11",
+      "title": "Black Hat Python",
+      "author": "Justin Seitz & Tim Arnold (2021)",
+      "category": "Scripting, Tooling & Automation",
+      "available": true,
+      "borrower": null,
+      "due_date": null,
+      "times_borrowed": 0
+    },
+    "2A": {
+      "book_id": "2A",
+      "title": "The Web Application Hacker's Handbook",
+      "author": "Dafydd Stuttard & Marcus Pinto",
+      "category": "Web Security & Bug Bounties",
+      "available": false,
+      "borrower": "Sagar Biswas",
+      "due_date": "2026-01-04",
+      "times_borrowed": 3
+    },
+    "2B": {
+      "book_id": "2B",
+      "title": "The Web Application Hacker's Handbook",
+      "author": "Dafydd Stuttard & Marcus Pinto",
+      "category": "Web Security & Bug Bounties",
+      "available": false,
+      "borrower": "Bill Gates",
+      "due_date": "2026-01-15",
+      "times_borrowed": 1
+    },
+    "12": {
+      "book_id": "12",
+      "title": "Black Hat Bash",
+      "author": "Dolev Farhi & Nick Aleks",
+      "category": "Scripting, Tooling & Automation",
+      "available": true,
+      "borrower": null,
+      "due_date": null,
+      "times_borrowed": 0
+    },
+    "2C": {
+      "book_id": "2C",
+      "title": "The Web Application Hacker's Handbook",
+      "author": "Dafydd Stuttard & Marcus Pinto",
+      "category": "Web Security & Bug Bounties",
+      "available": true,
+      "borrower": null,
+      "due_date": null,
+      "times_borrowed": 0
+    }
+  },
+  "members": {
+    "member-1": {
+      "member_id": "member-1",
+      "name": "Anisul Islam",
+      "email": "anisulislam@gmail.com"
+    },
+    "member-2": {
+      "member_id": "member-2",
+      "name": "Sagar Biswas",
+      "email": "eng.sagar.aiub@gmail.com"
+    },
+    "member-3": {
+      "member_id": "member-3",
+      "name": "Bill Gates",
+      "email": "billgates@outlook.com"
+    },
+    "member-4": {
+      "member_id": "member-4",
+      "name": "Atif Aslam",
+      "email": "atifaslam@gmail.com"
+    }
+  },
+  "loans": [
+    {
+      "loan_id": "1",
+      "book_id": "2",
+      "member_id": "member-1",
+      "borrower_name": "Anisul Islam",
+      "start_date": "2025-12-21",
+      "due_date": "2026-01-04",
+      "returned_at": null
+    },
+    {
+      "loan_id": "2",
+      "book_id": "2A",
+      "member_id": "member-2",
+      "borrower_name": "Sagar Biswas",
+      "start_date": "2025-12-21",
+      "due_date": "2025-12-31",
+      "returned_at": "2025-12-21"
+    },
+    {
+      "loan_id": "3",
+      "book_id": "2B",
+      "member_id": "member-3",
+      "borrower_name": "Bill Gates",
+      "start_date": "2025-12-21",
+      "due_date": "2026-01-15",
+      "returned_at": null
+    },
+    {
+      "loan_id": "4",
+      "book_id": "7",
+      "member_id": "member-4",
+      "borrower_name": "Atif Aslam",
+      "start_date": "2025-12-21",
+      "due_date": "2026-01-20",
+      "returned_at": null
+    },
+    {
+      "loan_id": "5",
+      "book_id": "5",
+      "member_id": "member-2",
+      "borrower_name": "Sagar Biswas",
+      "start_date": "2025-12-21",
+      "due_date": "2026-01-04",
+      "returned_at": null
+    },
+    {
+      "loan_id": "6",
+      "book_id": "9",
+      "member_id": "member-2",
+      "borrower_name": "Sagar Biswas",
+      "start_date": "2025-12-21",
+      "due_date": "2026-01-04",
+      "returned_at": null
+    },
+    {
+      "loan_id": "7",
+      "book_id": "2A",
+      "member_id": "member-2",
+      "borrower_name": "Sagar Biswas",
+      "start_date": "2025-12-21",
+      "due_date": "2026-01-04",
+      "returned_at": "2025-12-21"
+    },
+    {
+      "loan_id": "8",
+      "book_id": "2A",
+      "member_id": "member-2",
+      "borrower_name": "Sagar Biswas",
+      "start_date": "2025-12-21",
+      "due_date": "2026-01-04",
+      "returned_at": null
+    }
+  ],
+  "next_loan_id": 9
+}
