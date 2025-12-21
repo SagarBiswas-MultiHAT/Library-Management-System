@@ -4,7 +4,7 @@ This is a simple desktop app to manage a small library. It works with buttons an
 
 ### Main Window
 
-![](https://imgur.com/AiqL3QJ.png)
+![](https://imgur.com/L69lVpz.png)
 
 ### Add Book
 
