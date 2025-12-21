@@ -1,12 +1,18 @@
+import base64
 import csv
+import hashlib
+import hmac
 import json
 import re
+import secrets
+import struct
+import time
 import tkinter as tk
 from dataclasses import dataclass, asdict
 from datetime import date, timedelta
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
-from typing import Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union
 
 
 WindowLike = Union[tk.Tk, tk.Toplevel]
@@ -25,6 +31,50 @@ def center_window(root: WindowLike, width: int, height: int) -> None:
     y = y-42  # adjust for taskbar
 
     root.geometry(f"{width}x{height}+{x}+{y}")
+
+
+def hash_password(password: str) -> str:
+    """Return a SHA-256 hash for storing passwords."""
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+
+
+def _base32_padded(secret: str) -> bytes:
+    cleaned = secret.replace(" ", "").upper()
+    missing = len(cleaned) % 8
+    if missing:
+        cleaned += "=" * (8 - missing)
+    return cleaned.encode("utf-8")
+
+
+def totp_now(secret: str, digits: int = 6, step: int = 30, for_time: Optional[int] = None) -> int:
+    """Generate a TOTP code for the given secret."""
+    if not secret:
+        return -1
+    counter = int((for_time or time.time()) // step)
+    try:
+        key = base64.b32decode(_base32_padded(secret))
+    except Exception:
+        return -1
+    msg = struct.pack(">Q", counter)
+    digest = hmac.new(key, msg, hashlib.sha1).digest()
+    offset = digest[-1] & 0x0F
+    code = (struct.unpack(">I", digest[offset:offset + 4])[0] & 0x7FFFFFFF) % (10 ** digits)
+    return code
+
+
+def verify_totp(secret: str, code: str, window: int = 1) -> bool:
+    if not code.isdigit() or len(code) != 6:
+        return False
+    try:
+        submitted = int(code)
+    except ValueError:
+        return False
+    now = int(time.time())
+    for offset in range(-window, window + 1):
+        expected = totp_now(secret, for_time=now + offset * 30)
+        if expected == submitted:
+            return True
+    return False
 
 
 # Data layer
@@ -60,6 +110,69 @@ class Loan:
     start_date: str
     due_date: str
     returned_at: Optional[str] = None
+
+
+class CredentialStore:
+    """Lightweight credential store with hashed passwords."""
+
+    def __init__(self, path: Path):
+        self.path = path
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self._ensure_default()
+
+    def _generate_secret(self) -> str:
+        return base64.b32encode(secrets.token_bytes(10)).decode("utf-8").rstrip("=")
+
+    def _ensure_default(self) -> None:
+        if self.path.exists():
+            return
+        default_payload = {
+            "users": [
+                {
+                    "username": "admin",
+                    "display_name": "Administrator",
+                    "password_hash": hash_password("admin123"),
+                    "totp_secret": self._generate_secret(),
+                }
+            ]
+        }
+        self.path.write_text(json.dumps(default_payload, indent=2), encoding="utf-8")
+
+    def _load_users(self) -> List[dict]:
+        try:
+            data = json.loads(self.path.read_text(encoding="utf-8"))
+            users = data.get("users", [])
+            changed = False
+            for user in users:
+                if not user.get("totp_secret"):
+                    user["totp_secret"] = self._generate_secret()
+                    changed = True
+            if changed:
+                self._save_users(users)
+            return users
+        except Exception:
+            # Keep login flow alive if the file is malformed.
+            return []
+
+    def _save_users(self, users: List[dict]) -> None:
+        payload = {"users": users}
+        self.path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    def verify(self, username: str, password: str) -> Optional[str]:
+        username = username.strip()
+        if not username:
+            return None
+        hashed = hash_password(password)
+        for user in self._load_users():
+            if user.get("username") == username and user.get("password_hash") == hashed:
+                return user.get("display_name") or username
+        return None
+
+    def totp_secret(self, username: str) -> Optional[str]:
+        for user in self._load_users():
+            if user.get("username") == username:
+                return user.get("totp_secret")
+        return None
 
 
 class LibraryRepository:
@@ -310,11 +423,134 @@ class LibraryService:
 
 
 # UI layer
+class LoginWindow:
+    def __init__(self, root: tk.Tk, on_success: Callable[[str], None]):
+        self.root = root
+        self.on_success = on_success
+        self.store = CredentialStore(Path("library_credentials.json"))
+        self.window = tk.Toplevel(root)
+        self.window.title("Sign In - Library")
+        self.window.configure(bg="#0c1424")
+        self.window.resizable(False, False)
+        center_window(self.window, 520, 420)
+        self.window.protocol("WM_DELETE_WINDOW", root.destroy)
+        self.window.grab_set()
+        self.username_var = tk.StringVar(value="admin")
+        self.password_var = tk.StringVar()
+        self.code_var = tk.StringVar()
+        self.message_var = tk.StringVar()
+        self._build_ui()
+
+    def _build_ui(self) -> None:
+        palette = {
+            "bg": "#0c1424",
+            "panel_bg": "#0f1f35",
+            "card_bg": "#101827",
+            "border": "#1f2a3d",
+            "accent": "#1d4ed8",
+            "accent_soft": "#93c5fd",
+            "text_primary": "#e5e7eb",
+            "text_muted": "#a5b4c0",
+            "input_bg": "#0f172a",
+            "button": "#2563eb",
+            "button_active": "#1e3a8a",
+        }
+
+        style = ttk.Style(self.window)
+        style.theme_use("clam")
+        style.configure(
+            "Login.TEntry",
+            padding=8,
+            font=("Segoe UI", 10),
+            foreground=palette["text_primary"],
+            fieldbackground=palette["input_bg"],
+            background=palette["input_bg"],
+        )
+        style.map(
+            "Login.TEntry",
+            fieldbackground=[("active", "#14213a"), ("focus", "#14213a")],
+        )
+        style.configure(
+            "Login.TButton",
+            padding=12,
+            font=("Segoe UI", 10, "bold"),
+            background=palette["button"],
+            foreground=palette["text_primary"],
+            relief="flat",
+            borderwidth=0,
+        )
+        style.map(
+            "Login.TButton",
+            background=[("active", palette["button_active"])],
+            relief=[("pressed", "sunken")],
+        )
+
+        accent = tk.Frame(self.window, bg=palette["accent"], width=180, height=420)
+        accent.pack(side=tk.LEFT, fill="y")
+        tk.Label(accent, text="Library", fg=palette["text_primary"], bg=palette["accent"], font=("Segoe UI", 17, "bold")).pack(pady=(32, 4))
+        tk.Label(accent, text="Secure Access", fg=palette["accent_soft"], bg=palette["accent"], font=("Segoe UI", 10)).pack()
+        tk.Label(accent, text="Two-step protection\nfor your data", fg=palette["text_primary"], bg=palette["accent"], justify="left", font=("Segoe UI", 10, "normal"), wraplength=150).pack(pady=14)
+        tk.Label(accent, text="Need help?\nAsk your admin.", fg=palette["accent_soft"], bg=palette["accent"], justify="left", font=("Segoe UI", 9)).pack(pady=(6, 0))
+
+        form = tk.Frame(self.window, bg=palette["bg"], padx=18, pady=18)
+        form.pack(side=tk.LEFT, fill="both", expand=True)
+
+        card = tk.Frame(form, bg=palette["card_bg"], padx=18, pady=18, highlightthickness=1, highlightbackground=palette["border"])
+        card.pack(fill="both", expand=True)
+        tk.Label(card, text="Welcome back", fg=palette["text_primary"], bg=palette["card_bg"], font=("Segoe UI", 14, "bold")).pack(anchor="w")
+        tk.Label(card, text="Sign in with password and 2FA", fg=palette["text_muted"], bg=palette["card_bg"], font=("Segoe UI", 10)).pack(anchor="w", pady=(0, 14))
+
+        tk.Label(card, text="Username", fg=palette["text_muted"], bg=palette["card_bg"], font=("Segoe UI", 10)).pack(anchor="w")
+        ttk.Entry(card, textvariable=self.username_var, style="Login.TEntry").pack(fill="x", pady=(2, 12))
+        tk.Label(card, text="Password", fg=palette["text_muted"], bg=palette["card_bg"], font=("Segoe UI", 10)).pack(anchor="w")
+        password_entry = ttk.Entry(card, textvariable=self.password_var, style="Login.TEntry", show="*")
+        password_entry.pack(fill="x", pady=(2, 12))
+        password_entry.bind("<Return>", self._attempt_login)
+
+        tk.Label(card, text="Authenticator code", fg=palette["text_muted"], bg=palette["card_bg"], font=("Segoe UI", 10)).pack(anchor="w")
+        code_entry = ttk.Entry(card, textvariable=self.code_var, style="Login.TEntry")
+        code_entry.pack(fill="x", pady=(2, 12))
+        code_entry.bind("<Return>", self._attempt_login)
+
+        ttk.Button(card, text="Continue", style="Login.TButton", command=lambda: self._attempt_login(None)).pack(fill="x", pady=(8, 12))
+
+        info_row = tk.Frame(card, bg=palette["card_bg"])
+        info_row.pack(fill="x", pady=(4, 0))
+        tk.Label(info_row, text="Default user: admin / admin123", fg=palette["text_muted"], bg=palette["card_bg"], font=("Segoe UI", 9)).pack(anchor="w")
+        tk.Label(info_row, text="Enter the current 6-digit code from your authenticator app.", fg=palette["text_muted"], bg=palette["card_bg"], font=("Segoe UI", 9)).pack(anchor="w", pady=(2, 0))
+        tk.Label(info_row, textvariable=self.message_var, fg="#f87171", bg=palette["card_bg"], font=("Segoe UI", 9)).pack(anchor="w", pady=(6, 0))
+
+    def _attempt_login(self, event: Optional[tk.Event]) -> None:  # type: ignore[override]
+        username = self.username_var.get().strip()
+        password = self.password_var.get()
+        code = self.code_var.get().strip()
+        if not username or not password or not code:
+            self.message_var.set("Enter username, password, and code.")
+            return
+        display_name = self.store.verify(username, password)
+        if not display_name:
+            self.message_var.set("Invalid credentials. Try again.")
+            self.password_var.set("")
+            self.code_var.set("")
+            return
+        secret = self.store.totp_secret(username)
+        if not secret:
+            self.message_var.set("Authenticator not set. Ask an admin to add totp_secret.")
+            return
+        if not verify_totp(secret, code):
+            self.message_var.set("Invalid or expired 6-digit code.")
+            self.code_var.set("")
+            return
+        self.message_var.set("")
+        self.window.destroy()
+        self.on_success(display_name)
+
+
 class LibraryManagementGUI(ttk.Frame):
-    def __init__(self, root: tk.Tk):
+    def __init__(self, root: tk.Tk, user_name: str = "User"):
         super().__init__(root, padding=12)
         self.root = root
-        self.root.title("Library Management System")
+        self.root.title(f"Library Management System - {user_name}")
         self.repo = LibraryRepository(Path("library_data.json"))
         self.service = LibraryService(self.repo)
         self.search_var = tk.StringVar()
@@ -734,6 +970,12 @@ class LibraryManagementGUI(ttk.Frame):
 
 if __name__ == "__main__":
     root = tk.Tk()
-    center_window(root, 1500, 900)   # window size + centered position
-    app = LibraryManagementGUI(root)
+    root.withdraw()
+
+    def launch_main(display_name: str) -> None:
+        center_window(root, 1500, 900)
+        root.deiconify()
+        LibraryManagementGUI(root, user_name=display_name)
+
+    LoginWindow(root, on_success=launch_main)
     root.mainloop()
