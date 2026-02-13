@@ -106,7 +106,7 @@ Both files live in the same folder as the Python app.
 4. Run this command:
 
    ```powershell
-   python "Library Management System using Python.py"
+   python "main.py"
    ```
 
 5. The Sign-In window opens.
@@ -267,7 +267,7 @@ cd "C:\path\to\your\project"
 Then run:
 
 ```powershell
-py -m PyInstaller --onefile --windowed --name "Library Management System" "Library Management System using Python.py"
+py -m PyInstaller --onefile --windowed --name "Library Management System" "main.py"
 ```
 
 After it finishes, your EXE will be here:
@@ -282,7 +282,7 @@ dist\Library Management System.exe
 
 ## Files in this project
 
-- Main app: [Library Management System using Python.py](Library%20Management%20System%20using%20Python.py)
+- Main app: [main.py](Library%20Management%20System%20using%20Python.py)
 - Saves your library data: `library_data.json`
 - Stores login + 2FA secret: `library_credentials.json`
 - Tiny helper example: `SHA-256 hash.py`
