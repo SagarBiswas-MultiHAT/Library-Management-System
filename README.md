@@ -1,5 +1,17 @@
 # Library Management System (Python + Tkinter)
 
+<div align="right">
+
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
+&nbsp;
+[![License](https://img.shields.io/github/license/SagarBiswas-MultiHAT/Library-Management-System)](https://github.com/SagarBiswas-MultiHAT/Library-Management-System/blob/main/LICENSE)
+&nbsp;
+[![Last commit](https://img.shields.io/github/last-commit/SagarBiswas-MultiHAT/Library-Management-System)](https://github.com/SagarBiswas-MultiHAT/Library-Management-System/commits)
+&nbsp;
+[![Issues](https://img.shields.io/github/issues/SagarBiswas-MultiHAT/Library-Management-System)](https://github.com/SagarBiswas-MultiHAT/Library-Management-System/issues)
+
+</div>
+
 This is a small “library app” you run on your computer.
 
 Think of it like a digital notebook where you can:
