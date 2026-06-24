@@ -41,7 +41,7 @@ It also has a **login screen** with **two-step sign-in**:
 
 ### Main Window
 
-![](https://imgur.com/AiqL3QJ.png)
+![](https://imgur.com/y1L61pm.png)
 
 ### Add Book
 
